@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neon Dash</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.4.0/pixi.min.js"></script>
+<style>
+  :root{
+    --bg:#0b0e1a; --panel:#14182b; --accent:#9b5cff; --accent2:#5affd6;
+    --text:#f1eaff; --muted:#8a85b3;
+    padding-top: env(safe-area-inset-top,0px);
+    padding-bottom: env(safe-area-inset-bottom,0px);
+    box-sizing:border-box;
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){ --bg:#f1eefc; --panel:#ffffff; --text:#1c1433; --muted:#6a628f; }
+  }
+  html,body{height:100%;margin:0;background:var(--bg);color:var(--text);
+    font-family:-apple-system,Segoe UI,Roboto,Arial,sans-serif; overflow:hidden;}
+  #wrap{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;gap:10px;padding:10px;}
+  h1{font-size:18px;margin:0;color:var(--accent2);letter-spacing:.5px}
+  #hud{display:flex;gap:18px;font-size:14px;color:var(--muted);background:var(--panel);
+    padding:8px 16px;border-radius:10px;}
+  #hud b{color:var(--text)}
+  #stage-holder{position:relative;border-radius:12px;overflow:hidden;box-shadow:0 10px 30px rgba(0,0,0,.4);}
+  canvas{display:block}
+  #overlay{position:absolute;inset:0;background:rgba(10,8,20,.82);display:flex;
+    flex-direction:column;align-items:center;justify-content:center;gap:12px;text-align:center;padding:20px;}
+  #overlay h2{margin:0;font-size:22px}
+  #overlay p{margin:0;color:var(--muted);font-size:13px;max-width:320px;line-height:1.5}
+  button{background:var(--accent2);color:#07131a;border:none;padding:10px 22px;border-radius:999px;
+    font-weight:700;font-size:14px;cursor:pointer;}
+  button:active{transform:scale(.97)}
+  #hint{font-size:12px;color:var(--muted);text-align:center;max-width:360px}
+  .hidden{display:none !important}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <h1>NEON DASH — protótipo</h1>
+  <div id="hud">
+    <div>🏁 <b id="dist">0</b> m</div>
+    <div>⚡ <b id="speed">1.0x</b></div>
+    <div>💥 <b id="best">0</b> m recorde</div>
+  </div>
+  <div id="stage-holder">
+    <div id="overlay">
+      <h2 id="ov-title">Desvie e sobreviva</h2>
+      <p id="ov-text">Pressione <b>espaço / toque na tela</b> para pular. Desvie dos blocos e veja até onde a velocidade sobe.</p>
+      <button id="btn">Jogar</button>
+    </div>
+  </div>
+  <div id="hint">Feito com PixiJS — protótipo pessoal de mecânica de plataforma (gravidade, pulo, timing e dificuldade progressiva).</div>
+</div>
+
+<script>
+const W = Math.min(480, window.innerWidth - 24);
+const H = Math.min(360, Math.round((window.innerHeight - 220)));
+const app = new PIXI.Application({ width: W, height: Math.max(260,H), backgroundColor: 0x10091f, antialias: true });
+document.getElementById('stage-holder').prepend(app.view);
+app.view.style.borderRadius = '12px';
+const HGT = app.view.height;
+const groundY = HGT - 46;
+
+const world = new PIXI.Container();
+app.stage.addChild(world);
+
+// ground line
+const ground = new PIXI.Graphics();
+ground.beginFill(0x9b5cff, 0.5);
+ground.drawRect(0, groundY+28, W, 2);
+ground.endFill();
+world.addChild(ground);
+
+// player
+const player = new PIXI.Graphics();
+player.beginFill(0x5affd6);
+player.drawRoundedRect(-14,-14,28,28,6);
+player.endFill();
+player.x = 70; player.y = groundY;
+world.addChild(player);
+
+let vy = 0, onGround = true, alive = false;
+let obstacles = [], dist = 0, best = 0, speed = 4.2, spawnGap = 0;
+
+function jump(){
+  if (onGround && alive){ vy = -10.2; onGround = false; }
+}
+window.addEventListener('keydown', e => { if (e.code==='Space') { e.preventDefault(); jump(); } });
+app.view.addEventListener('pointerdown', jump);
+
+function spawnObstacle(){
+  const tall = Math.random() < 0.3;
+  const g = new PIXI.Graphics();
+  g.beginFill(0xff5a7a);
+  const h = tall ? 46 : 26;
+  g.drawRoundedRect(-11, -h, 22, h, 4);
+  g.endFill();
+  g.x = W + 20; g.y = groundY;
+  world.addChild(g);
+  obstacles.push(g);
+}
+
+function resetGame(){
+  obstacles.forEach(o=>world.removeChild(o)); obstacles=[];
+  dist = 0; speed = 4.2; spawnGap = 0; vy = 0; onGround = true;
+  player.y = groundY;
+  updateHUD();
+}
+function updateHUD(){
+  document.getElementById('dist').textContent = Math.floor(dist);
+  document.getElementById('speed').textContent = (speed/4.2).toFixed(1)+'x';
+  document.getElementById('best').textContent = Math.floor(best);
+}
+function gameOver(){
+  alive = false;
+  best = Math.max(best, dist);
+  document.getElementById('ov-title').textContent = 'Você colidiu!';
+  document.getElementById('ov-text').innerHTML = `Distância: <b>${Math.floor(dist)}m</b> · Recorde: <b>${Math.floor(best)}m</b>`;
+  document.getElementById('btn').textContent = 'Jogar novamente';
+  document.getElementById('overlay').classList.remove('hidden');
+  updateHUD();
+}
+document.getElementById('btn').addEventListener('click', () => {
+  resetGame(); alive = true;
+  document.getElementById('overlay').classList.add('hidden');
+});
+
+app.ticker.add(() => {
+  if (!alive) return;
+
+  // gravity
+  vy += 0.55;
+  player.y += vy;
+  if (player.y > groundY){ player.y = groundY; vy = 0; onGround = true; }
+  player.rotation = onGround ? 0 : Math.min(0.5, vy*0.03);
+
+  dist += speed * 0.05;
+  speed += 0.0022;
+  updateHUD();
+
+  spawnGap--;
+  if (spawnGap <= 0){
+    spawnObstacle();
+    spawnGap = Math.max(45, 95 - speed*4) + Math.random()*30;
+  }
+
+  for (let i=obstacles.length-1;i>=0;i--){
+    const o = obstacles[i];
+    o.x -= speed;
+    if (o.x < -20){ world.removeChild(o); obstacles.splice(i,1); continue; }
+    const dx = Math.abs(o.x - player.x), dy = Math.abs((o.y - o.height/2*0) - player.y);
+    const hitX = Math.abs(o.x - player.x) < 20;
+    const hitY = player.y > (o.y - (o.height||0)) - 6 && player.y >= groundY - 2 ? true : (player.y > groundY - (o.getBounds().height) + 10);
+    if (hitX && player.y >= groundY - 30 + (o === o ? 0 : 0) && Math.abs(player.y - groundY) < (o.height ? o.height - 4 : 40)) {
+      // simple AABB-ish check
+    }
+  }
+
+  // simpler robust collision using bounds
+  const pb = player.getBounds();
+  for (const o of obstacles){
+    const ob = o.getBounds();
+    if (pb.x < ob.x+ob.width && pb.x+pb.width > ob.x && pb.y < ob.y+ob.height && pb.y+pb.height > ob.y){
+      gameOver(); return;
+    }
+  }
+});
+</script>
+</body>
+</html>

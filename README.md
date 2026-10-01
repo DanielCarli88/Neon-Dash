@@ -6,7 +6,7 @@ Protótipo de *endless runner* 2D desenvolvido com **PixiJS**, com física de pu
 
 ## Sobre o projeto
 
-Segundo protótipo de uma pequena série de experimentos pessoais com desenvolvimento de jogos 2D na web. Enquanto o [Horde Survivor](../horde-survivor) explora combate e mira, o **Neon Dash** tem um foco diferente: **física, timing e progressão de dificuldade**, mecânicas centrais em jogos de plataforma e corrida infinita.
+Segundo protótipo de uma pequena série de experimentos pessoais com desenvolvimento de jogos 2D na web. O **Neon Dash** tem um foco diferente: **física, timing e progressão de dificuldade**, mecânicas centrais em jogos de plataforma e corrida infinita.
 
 O objetivo foi praticar, do zero, com PixiJS puro:
 

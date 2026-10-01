@@ -2,8 +2,6 @@
 
 Protótipo de *endless runner* 2D desenvolvido com **PixiJS**, com física de pulo, gravidade e dificuldade progressiva.
 
-**[▶ Jogar online](https://claude.ai/artifact/YbW14YUoLb6XVKJSsHmq6A)**
-
 ![status](https://img.shields.io/badge/status-prot%C3%B3tipo-9b5cff) ![engine](https://img.shields.io/badge/engine-PixiJS-5affd6)
 
 ## Sobre o projeto

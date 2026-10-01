@@ -50,14 +50,6 @@ cd neon-dash
 open index.html   # ou dê duplo clique no arquivo
 ```
 
-## Próximos passos (ideias de evolução)
-
-- [ ] Sprites animados para personagem e obstáculos
-- [ ] Variação de padrões de obstáculo (combos, alturas diferentes)
-- [ ] Efeitos visuais de parallax no cenário
-- [ ] Persistência de recorde (localStorage)
-- [ ] Som e feedback de impacto
-
 ## Autor
 
 **Daniel Pereira Carli**
